@@ -1,0 +1,44 @@
+// --- Zinnia Watering System (Active-High Logic) ---
+const int moisturePin = A1; 
+const int relayPin = 7;     
+
+// Zinnias need to dry out. Since 830 is soaking wet, 
+// we wait until it drops down to 450 before watering again.
+int dryThreshold = 350;    
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(relayPin, OUTPUT);
+  
+  // Start with pump OFF (Low for Active-High relays)
+  digitalWrite(relayPin, LOW); 
+  Serial.println("--- Zinnia Monitor Online ---");
+}
+
+void loop() {
+  int moistureLevel = analogRead(moisturePin);
+  
+  Serial.print("Moisture Level: ");
+  Serial.println(moistureLevel);
+
+  // If it drops below 350, the soil is dry enough for a Zinnia
+  if (moistureLevel < dryThreshold) {
+    Serial.println("!! ZINNIA DRY DETECTED !! -> Starting Pump.");
+    
+    // 1. TURN PUMP ON
+    digitalWrite(relayPin, HIGH);   
+    delay(4000); // Give it a solid 4-second deep drink
+    
+    // 2. TURN PUMP OFF
+    digitalWrite(relayPin, LOW);  
+    Serial.println("Pump Stopped. Giving roots 1 minutes to absorb water...");
+    
+    // 3. WAIT (Crucial for Zinnias so they don't get root rot from constant watering)
+    delay(60000); // 30 minutes in milliseconds
+  } 
+  else {
+    // Soil is wet enough (sitting up near 830), keep the pump firmly OFF
+    digitalWrite(relayPin, LOW); 
+    delay(2000); // Check again every 2 seconds
+  }
+}
